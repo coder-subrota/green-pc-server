@@ -246,6 +246,43 @@ const result = await productsCollection.updateOne(query , updateDoc) ;
 res.status(201).send(result) ;
 })
 
+//get product data 
+
+app.get("/get-products/:id",verifyJWT,verifySeller,async(req,res) => {
+   const id = req.params.id;
+   const result = await productsCollection.findOne({_id:ObjectId(id)}) ;
+   res.status(201).send(result) ;
+});
+
+//edit product
+app.put("/edit-product", verifyJWT, verifySeller, async (req, res) => {
+    try {
+        const getData = req.body;
+        const { id, ...updateData } = getData;
+        if (!id) {
+            return res.status(400).send({ message: "Product ID needed!" });
+        }
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = {
+            $set: updateData,
+        };
+        const result = await productsCollection.updateOne(filter, updateDoc);
+
+        if (result.matchedCount === 0) {
+            return res.status(404).send({ message: "Product not founded!" });
+        }
+        res.send({ 
+            success: true, 
+            message: "Product updated successfully!", 
+            result 
+        });
+
+    } catch (error) {
+        console.error("Update error:", error);
+        res.status(500).send({ message: "Internal server error", error: error.message });
+    }
+});
+
 //get buyers by seller email 
 app.get("/myBuyers/:email" , verifyJWT, verifySeller ,  async(req , res ) => {
 const email = req.params.email ;
